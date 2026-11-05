@@ -21,6 +21,15 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Catch Chrome's install offer as early as possible, before the app's scripts load */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__saathiInstall=e;window.dispatchEvent(new Event('saathi-install'));});",
+          }}
+        />
+      </head>
       <body className={`${display.variable} ${body.variable}`}>{children}</body>
     </html>
   );

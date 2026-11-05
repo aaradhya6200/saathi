@@ -19,6 +19,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             <li><Link href="/join">Become a helper</Link></li>
             <li><Link href="/track">Track a booking</Link></li>
           </ul>
+          <Link className="nav-app" href="/app">Get app</Link>
           <Link className="btn primary" href="/book">Book a Saathi</Link>
         </div>
       </nav>

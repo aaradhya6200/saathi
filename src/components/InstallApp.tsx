@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
+type W = Window & { __saathiInstall?: InstallEvent | null };
 let deferred: InstallEvent | null = null;
 const listeners = new Set<() => void>();
 if (typeof window !== "undefined") {
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferred = e as InstallEvent;
+  // The root layout's inline script catches the event early and stores it here.
+  deferred = (window as W).__saathiInstall ?? null;
+  window.addEventListener("saathi-install", () => {
+    deferred = (window as W).__saathiInstall ?? null;
     listeners.forEach((l) => l());
   });
   window.addEventListener("appinstalled", () => {
@@ -19,7 +21,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-type Platform = "installed" | "android" | "ios" | "other";
+type Platform = "installed" | "inapp" | "android" | "ios" | "other";
 
 function detect(): Platform {
   const standalone =
@@ -27,6 +29,8 @@ function detect(): Platform {
     (navigator as Navigator & { standalone?: boolean }).standalone === true;
   if (standalone) return "installed";
   const ua = navigator.userAgent;
+  // WhatsApp, Instagram, Facebook etc. open links in their own browser, which cannot install apps.
+  if (/WhatsApp|Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|LinkedInApp|Twitter|; wv\)/i.test(ua)) return "inapp";
   if (/iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1)) return "ios";
   if (/Android/.test(ua)) return "android";
   return "other";
@@ -64,7 +68,7 @@ export function ServiceWorker() {
   return null;
 }
 
-const DISMISS_KEY = "saathi-install-dismissed";
+const DISMISS_KEY = "saathi-install-dismissed-v2";
 
 /** Small bar at the bottom of phone screens: "Get the Saathi app". */
 export function InstallBanner() {
@@ -76,7 +80,6 @@ export function InstallBanner() {
     setHidden(dismissed);
   }, []);
   if (hidden || !platform || platform === "installed" || platform === "other") return null;
-  if (platform === "android" && !canPrompt) return null;
 
   function close() {
     try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
@@ -90,10 +93,10 @@ export function InstallBanner() {
         <strong>Get the Saathi app</strong>
         <span>Book and track from your home screen</span>
       </div>
-      {platform === "android" ? (
+      {platform === "android" && canPrompt ? (
         <button className="btn primary" onClick={async () => { if (await install()) close(); }}>Install</button>
       ) : (
-        <Link className="btn primary" href="/app">How</Link>
+        <Link className="btn primary" href="/app">Install</Link>
       )}
       <button className="install-close" onClick={close} aria-label="Not now">×</button>
     </div>
@@ -110,6 +113,7 @@ export function InstallPanel() {
   }
   return (
     <div className="install-panel">
+      {platform === "inapp" && <InAppNotice />}
       {canPrompt && (
         <button className="btn primary big" onClick={async () => setDone(await install())}>Install the Saathi app</button>
       )}
@@ -118,7 +122,8 @@ export function InstallPanel() {
           <h2>Android (Chrome)</h2>
           <ol>
             <li>Open this page in <b>Chrome</b>.</li>
-            <li>Tap <b>Install</b> above, or the <b>⋮</b> menu → <b>Install app</b> / <b>Add to Home screen</b>.</li>
+            <li>Tap the <b>⋮</b> menu (top right).</li>
+            <li>Tap <b>Install app</b> or <b>Add to Home screen</b>, then <b>Install</b>.</li>
             <li>Saathi appears on your home screen.</li>
           </ol>
         </section>
@@ -131,6 +136,27 @@ export function InstallPanel() {
           </ol>
         </section>
       </div>
+    </div>
+  );
+}
+
+/** Shown inside WhatsApp/Instagram/Facebook browsers, which cannot install apps. */
+function InAppNotice() {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(location.origin + "/app");
+      setCopied(true);
+    } catch {}
+  }
+  return (
+    <div className="inapp-notice">
+      <strong>Open this page in Chrome or Safari to install.</strong>
+      <span>
+        You opened the link inside another app (like WhatsApp). Tap the <b>⋮</b> or <b>…</b> menu and choose
+        <b> Open in browser</b>, or copy the link and paste it into Chrome (Android) or Safari (iPhone).
+      </span>
+      <button className="btn ghost" onClick={copy}>{copied ? "Link copied ✓" : "Copy link"}</button>
     </div>
   );
 }

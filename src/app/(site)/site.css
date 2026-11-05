@@ -203,3 +203,17 @@
   body { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
   .nav { padding-top: env(safe-area-inset-top); }
 }
+
+/* "Get app" link in the top bar, phones only (hidden inside the installed app) */
+.nav-app { display: none; }
+@media (max-width: 920px) {
+  .nav-app { display: inline-flex; margin-left: auto; font-weight: 600; color: var(--accent); text-decoration: none;
+             padding: .5rem .8rem; border: 1px solid var(--accent); border-radius: 999px; font-size: .92rem; white-space: nowrap; }
+  .nav-app + .btn { margin-left: 0; }
+  .nav .wrap { gap: .6rem; }
+}
+@media (max-width: 420px) { .nav .logo { font-size: 0; gap: 0; } .nav-app, .nav .btn { padding-inline: .75rem; } }
+@media (display-mode: standalone) { .nav-app { display: none; } }
+.inapp-notice { display: grid; gap: .5rem; justify-items: center; background: #FEF3C7; border: 1px solid #F59E0B;
+                color: var(--ink); border-radius: 16px; padding: 1.1rem 1.2rem; max-width: 34rem; }
+.inapp-notice span { color: var(--soft); }
