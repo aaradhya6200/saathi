@@ -162,3 +162,44 @@
 .timeline li { position: relative; }
 .timeline li::before { content: ""; position: absolute; left: calc(-1rem - 6px); top: .45rem; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
 .timeline time { display: block; font-size: .82rem; color: var(--soft); }
+
+/* ---------- Installable app ---------- */
+.install-bar {
+  position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40;
+  display: flex; align-items: center; gap: .75rem; padding: .7rem .8rem;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 12px 32px -12px rgba(15, 42, 29, .35);
+}
+.install-bar img { border-radius: 10px; flex: none; }
+.install-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; flex: 1; }
+.install-text span { color: var(--soft); font-size: .85rem; }
+.install-bar .btn { padding: .55rem 1rem; font-size: .92rem; flex: none; }
+.install-close { background: none; border: 0; color: var(--soft); font-size: 1.5rem; line-height: 1; padding: .2rem .35rem; cursor: pointer; }
+@media (min-width: 921px) { .install-bar { display: none; } }
+
+.app-page { text-align: center; }
+.app-page .narrow { max-width: 720px; }
+.app-page-icon { border-radius: 22px; box-shadow: 0 10px 28px -12px rgba(21, 128, 61, .7); margin-bottom: 1rem; }
+.app-page .lead { margin: .5rem auto 1.8rem; max-width: 34rem; }
+.btn.big { padding: 1rem 2rem; font-size: 1.1rem; }
+.install-panel { display: grid; gap: 1.8rem; justify-items: center; }
+.install-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; width: 100%; text-align: left; }
+.install-steps section { border: 1px solid var(--line); border-radius: 16px; padding: 1.2rem 1.3rem; background: var(--paper); }
+.install-steps section.here { border-color: var(--accent); background: var(--tint); }
+.install-steps h2 { font-size: 1.15rem; margin: 0 0 .6rem; }
+.install-steps ol { margin: 0; padding-left: 1.2rem; display: grid; gap: .4rem; color: var(--soft); }
+.install-ok { font-weight: 600; color: var(--neem); background: var(--accent-soft); border-radius: 12px; padding: 1rem; }
+
+/* Bottom tab bar: only in the installed app */
+.app-tabs { display: none; }
+@media (display-mode: standalone) {
+  .app-tabs {
+    display: grid; grid-template-columns: repeat(3, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: rgba(255, 255, 255, .96); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .app-tabs a { text-align: center; padding: .85rem 0; font-weight: 600; text-decoration: none; color: var(--soft); }
+  .app-tabs a:active { color: var(--accent); background: var(--tint); }
+  body { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+  .nav { padding-top: env(safe-area-inset-top); }
+}

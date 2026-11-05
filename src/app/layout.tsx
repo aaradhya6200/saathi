@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_2, Hind } from "next/font/google";
 import "./globals.css";
 
@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: { default: "Saathi · A trusted helper by the hour", template: "%s · Saathi" },
   description:
     "Book a verified helper by the hour for hospital visits, medicines, market runs and paperwork. Live updates for the whole family. Hyderabad.",
+  applicationName: "Saathi",
+  appleWebApp: { capable: true, title: "Saathi", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#15803D",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

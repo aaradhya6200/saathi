@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
+import { InstallBanner, ServiceWorker } from "@/components/InstallApp";
 import "./site.css";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,14 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         </div>
       </nav>
       {children}
+      <InstallBanner />
+      <ServiceWorker />
+      {/* Bottom tabs, shown only when opened as the installed app */}
+      <nav className="app-tabs" aria-label="App">
+        <Link href="/">Home</Link>
+        <Link href="/book">Book</Link>
+        <Link href="/track">Track</Link>
+      </nav>
       <footer className="site-footer">
         <div className="wrap">
           <div>
@@ -34,6 +43,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             <Link href="/#pricing">Pricing</Link>
             <Link href="/join">Become a helper</Link>
             <Link href="/#faq">FAQ</Link>
+            <Link href="/app">Get the app</Link>
           </nav>
           <p>© {new Date().getFullYear()} Saathi</p>
         </div>
