@@ -51,15 +51,17 @@ Browse the raw database with `npm run db:studio`.
 
 ## Hosting (Google Cloud Run + Neon Postgres)
 
-The whole app (website, API and admin) runs as one container on Cloud Run in Mumbai (`asia-south1`).
-The database is Neon Postgres (free tier). Choose the AWS Mumbai (`ap-south-1`) region in Neon so it is close to Cloud Run.
+The whole app (website, API and admin) runs as one container on Cloud Run in Columbus, Ohio (`us-east5`).
+The database is Neon Postgres (free tier) in AWS US East (Ohio, `us-east-2`). Keep the app and the database in the same
+area: each page makes several database queries, so a long app↔database distance slows every page down.
+(Neon has no Mumbai region. If you move the database to Singapore later, move Cloud Run to `asia-southeast1` with it.)
 
 **Option A: from the browser (no tools on your computer)**
 
-1. Neon: sign up at https://neon.tech, create a project in **AWS Asia Pacific (Mumbai)**, and copy two connection strings from **Connect**: the pooled one (host contains `-pooler`) and the direct one (pooling switched off).
+1. Neon: sign up at https://neon.tech, create a project in **AWS US East 2 (Ohio)**, and copy two connection strings from **Connect**: the pooled one (host contains `-pooler`) and the direct one (pooling switched off).
 2. Google Cloud: https://console.cloud.google.com → create a project → link a billing account (required even for the free tier).
 3. **Cloud Run → Deploy container → Service → Continuously deploy from a repository** → set up Cloud Build → connect GitHub → pick this repo, branch `main`, build type **Dockerfile** (path `/Dockerfile`).
-4. Region `asia-south1`, **Allow unauthenticated invocations**.
+4. Region `us-east5` (Columbus), **Allow unauthenticated invocations**.
 5. Under **Containers → Variables & secrets**, add `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `ADMIN_PASSWORD`, `SESSION_SECRET` (and optionally `NOTIFY_WEBHOOK_URL`). Container port: `8080`.
 6. Create. The first build takes about 5 minutes. Database tables are created automatically when the container starts.
 

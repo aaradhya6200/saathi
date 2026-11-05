@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Deploy Saathi to Google Cloud Run (Mumbai).
+# Deploy Saathi to Google Cloud Run (Columbus, Ohio: next to the Neon database in AWS us-east-2).
 # Usage: ./deploy.sh            (needs gcloud logged in and env.yaml filled in)
 set -euo pipefail
 cd "$(dirname "$0")"
 
-REGION="${REGION:-asia-south1}"
+REGION="${REGION:-us-east5}"
 SERVICE="${SERVICE:-saathi}"
 
 if [ ! -f env.yaml ]; then
