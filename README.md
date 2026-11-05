@@ -43,20 +43,36 @@ Browse the raw database with `npm run db:studio`.
 
 | Name | What it does |
 |---|---|
-| `DATABASE_URL` | Database connection |
+| `DATABASE_URL` | Neon pooled connection string (used by the app) |
+| `DATABASE_URL_UNPOOLED` | Neon direct connection string (used for migrations) |
 | `ADMIN_PASSWORD` | Admin login password. **Change it.** |
 | `SESSION_SECRET` | Long random string for signing logins: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `NOTIFY_WEBHOOK_URL` | Optional. Slack or Discord incoming-webhook URL to get pinged for each booking |
 
-## Hosting (Vercel + Neon Postgres, both have free tiers)
+## Hosting (Google Cloud Run + Neon Postgres)
 
-1. At https://vercel.com, sign up with GitHub and import this repository. Don't deploy yet if it asks for settings; the first deploy may fail until step 3 is done, which is fine.
-2. Project → **Storage** → **Create Database** → **Neon** (Serverless Postgres) → connect it to this project. This sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
-3. Project → **Settings → Environment Variables**: add `ADMIN_PASSWORD` and `SESSION_SECRET`.
-4. **Deployments** → latest → **Redeploy**. Each deploy runs `prisma migrate deploy` first (see `vercel.json`), so the tables are created automatically.
-5. Optional: **Settings → Domains** to add your own domain (e.g. saathi.in).
+The whole app (website, API and admin) runs as one container on Cloud Run in Mumbai (`asia-south1`).
+The database is Neon Postgres (free tier). Choose the AWS Mumbai (`ap-south-1`) region in Neon so it is close to Cloud Run.
 
-Every `git push` to `main` deploys a new version automatically.
+**Option A: from the browser (no tools on your computer)**
+
+1. Neon: sign up at https://neon.tech, create a project in **AWS Asia Pacific (Mumbai)**, and copy two connection strings from **Connect**: the pooled one (host contains `-pooler`) and the direct one (pooling switched off).
+2. Google Cloud: https://console.cloud.google.com → create a project → link a billing account (required even for the free tier).
+3. **Cloud Run → Deploy container → Service → Continuously deploy from a repository** → set up Cloud Build → connect GitHub → pick this repo, branch `main`, build type **Dockerfile** (path `/Dockerfile`).
+4. Region `asia-south1`, **Allow unauthenticated invocations**.
+5. Under **Containers → Variables & secrets**, add `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `ADMIN_PASSWORD`, `SESSION_SECRET` (and optionally `NOTIFY_WEBHOOK_URL`). Container port: `8080`.
+6. Create. The first build takes about 5 minutes. Database tables are created automatically when the container starts.
+
+After that, every `git push` to `main` builds and deploys a new version.
+
+**Option B: from the terminal** (needs the `gcloud` CLI, logged in with `gcloud auth login`)
+
+```bash
+cp env.yaml.example env.yaml   # fill in the values
+./deploy.sh
+```
+
+**Custom domain:** Cloud Run → your service → **Integrations / Domain mappings**, or put the service behind a load balancer.
 
 ## Not built yet
 
