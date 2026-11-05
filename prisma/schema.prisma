@@ -1,0 +1,76 @@
+// Saathi database schema (Postgres, hosted on Neon).
+// DATABASE_URL is the pooled connection the app uses; DATABASE_URL_UNPOOLED is the
+// direct connection Prisma needs for migrations. Vercel's Neon integration sets both.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  code          String   @unique // short public reference, e.g. SA-7K3P9
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customerName  String
+  customerPhone String   // digits only, 10-digit Indian mobile
+  forWhom       String
+  area          String
+  city          String   @default("Hyderabad")
+
+  plan          String   // PAYG | CARE | BIZ   (see src/lib/pricing.ts)
+  date          DateTime // booking day (midnight, local)
+  startTime     String   // "HH:MM"
+  hours         Float    // hours requested
+  tasks         String
+
+  status        String   @default("REQUESTED") // REQUESTED | CONFIRMED | IN_PROGRESS | COMPLETED | CANCELLED
+
+  helperId      String?
+  helper        Helper?  @relation(fields: [helperId], references: [id])
+
+  // Filled in when the booking is completed
+  minutesUsed   Int?
+  purchases     Int?     // rupees, paid at cost
+  timeCharge    Int?     // rupees, computed from minutesUsed and plan
+  paid          Boolean  @default(false)
+
+  adminNotes    String?
+  events        BookingEvent[]
+
+  @@index([status])
+  @@index([customerPhone])
+}
+
+// Timeline shown to the family on the tracking page.
+model BookingEvent {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  message   String
+
+  @@index([bookingId])
+}
+
+model Helper {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  name         String
+  phone        String    @unique
+  area         String
+  languages    String    @default("")
+  hasBike      Boolean   @default(false)
+  availability String
+  about        String    @default("")
+
+  status       String    @default("APPLIED") // APPLIED | INTERVIEW | ACTIVE | REJECTED
+  verified     Boolean   @default(false)     // police verification done
+  bookings     Booking[]
+}

@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Saathi
 
-## Getting Started
+Website and operations dashboard for Saathi: book a verified helper by the hour.
 
-First, run the development server:
+## What's in it
+
+**Public site**
+- `/`: home page (services, pricing with estimator, safety, FAQ)
+- `/book`: booking form. Each booking gets a code like `SA-7K3P9`.
+- `/track`: families check status, helper and updates with the code and phone number
+- `/join`: helper application form
+
+**Admin** (`/admin`, password protected)
+- Overview: new requests, upcoming bookings for the next 7 days, applications, this month's revenue
+- Bookings: search and filter, assign a helper, change status, post updates the family sees, enter time used and purchases (the bill is calculated automatically), mark as paid, private notes
+- Helpers: move applicants through Applied → Interview → Active, mark police verification
+
+**Backend**
+- API: `POST /api/bookings`, `POST /api/track`, `POST /api/helpers`
+- Database: Prisma ORM. SQLite locally, Postgres in production
+- Input validation, spam honeypot, per-IP rate limits, signed admin session cookie
+- Optional webhook notification (Slack/Discord/Zapier) for every new booking and application
+
+Prices live in one place: `src/lib/pricing.ts`.
+
+## Run it on your computer
+
+Put the two Neon connection strings (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`) in `.env`, then:
 
 ```bash
+npm install
+npx prisma migrate deploy  # creates the tables (safe to run again)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tip: in Neon, create a separate "dev" branch of the database for local testing so test bookings don't mix with real ones.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open http://localhost:3000. The admin is at http://localhost:3000/admin, and the password is `ADMIN_PASSWORD` in `.env`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Browse the raw database with `npm run db:studio`.
 
-## Learn More
+## Settings (`.env`)
 
-To learn more about Next.js, take a look at the following resources:
+| Name | What it does |
+|---|---|
+| `DATABASE_URL` | Database connection |
+| `ADMIN_PASSWORD` | Admin login password. **Change it.** |
+| `SESSION_SECRET` | Long random string for signing logins: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `NOTIFY_WEBHOOK_URL` | Optional. Slack or Discord incoming-webhook URL to get pinged for each booking |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Hosting (Vercel + Neon Postgres, both have free tiers)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. At https://vercel.com, sign up with GitHub and import this repository. Don't deploy yet if it asks for settings; the first deploy may fail until step 3 is done, which is fine.
+2. Project → **Storage** → **Create Database** → **Neon** (Serverless Postgres) → connect it to this project. This sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
+3. Project → **Settings → Environment Variables**: add `ADMIN_PASSWORD` and `SESSION_SECRET`.
+4. **Deployments** → latest → **Redeploy**. Each deploy runs `prisma migrate deploy` first (see `vercel.json`), so the tables are created automatically.
+5. Optional: **Settings → Domains** to add your own domain (e.g. saathi.in).
 
-## Deploy on Vercel
+Every `git push` to `main` deploys a new version automatically.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Not built yet
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Online payment (Razorpay/UPI links). Payments are marked manually in the admin.
+- Automatic WhatsApp/SMS messages to customers (needs a WhatsApp Business API provider such as Gupshup or Interakt).
+- Helper mobile app with live GPS location. Updates are posted by the team from the admin.
+- Several admin accounts. There is one shared password today.
