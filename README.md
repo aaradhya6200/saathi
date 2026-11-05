@@ -49,6 +49,14 @@ Browse the raw database with `npm run db:studio`.
 | `SESSION_SECRET` | Long random string for signing logins: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `NOTIFY_WEBHOOK_URL` | Optional. Slack or Discord incoming-webhook URL to get pinged for each booking |
 
+## Hosting on AWS Amplify (recommended: same AWS region as the Neon database)
+
+1. AWS Console → region **US East (Ohio) us-east-2** (top right) → **AWS Amplify** → **Create new app** → **GitHub** → authorize → pick `saathi`, branch `main`.
+2. Amplify detects Next.js and uses `amplify.yml` from this repo.
+3. **Advanced settings → Environment variables**: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `ADMIN_PASSWORD`, `SESSION_SECRET` (optional `NOTIFY_WEBHOOK_URL`).
+4. **Save and deploy**. Each build applies database migrations, then builds. Every push to `main` redeploys.
+5. Custom domain: Amplify → **Hosting → Custom domains**.
+
 ## Hosting (Google Cloud Run + Neon Postgres)
 
 The whole app (website, API and admin) runs as one container on Cloud Run in Columbus, Ohio (`us-east5`).

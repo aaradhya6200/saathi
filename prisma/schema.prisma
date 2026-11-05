@@ -1,9 +1,11 @@
 // Saathi database schema (Postgres, hosted on Neon).
 // DATABASE_URL is the pooled connection the app uses; DATABASE_URL_UNPOOLED is the
-// direct connection Prisma needs for migrations. Vercel's Neon integration sets both.
+// direct connection Prisma needs for migrations.
 
 generator client {
   provider = "prisma-client-js"
+  // native: this computer; rhel: AWS Amplify (Amazon Linux); debian: the Docker image
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
